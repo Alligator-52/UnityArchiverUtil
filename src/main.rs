@@ -13,7 +13,7 @@ const REQUIRED_FOLDERS: [&str; 4] = ["Assets","Packages", "ProjectSettings", "Us
 fn main() -> io::Result<()> 
 {
     let args: Vec<String> = env::args().collect();
-    if args.len() == 0 
+    if args.len() < 2
     {
         println!("Empty!");
         return Ok(());
