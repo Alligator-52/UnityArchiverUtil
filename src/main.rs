@@ -20,7 +20,7 @@ fn main() -> io::Result<()>
         name = folder_name.to_string_lossy().to_string();
     }
 
-    println!("Folder name: {name}");
+    println!("\nFolder name: {name}\n");
     // println!("Path i am getting : {:?}",path.display());
 
     if !path.is_dir()
@@ -35,13 +35,49 @@ fn main() -> io::Result<()>
     }
     if !is_unity_project(path)
     {
-        println!("The provided directory is not a unity project!");
+        println!("\nThe provided directory is not a unity project!");
         return  Ok(());
     }
 
     let backup_dir = path.join(name + "_Archive");
-    println!("archive directory name: {:?}", &backup_dir);
+    println!("\narchive directory name: {:?}", &backup_dir);
     copy_project_files(path, &backup_dir);
+
+    let mut zip_input: String = String::new();
+
+    loop
+    {
+        println!("do you want to zip the archived folder? y/n \n");
+        match io::stdin().read_line(&mut zip_input)
+        {
+            Ok(_) => 
+            {
+                match zip_input.trim().to_lowercase().as_str() 
+                {
+                    "yes"|"y" => 
+                    {
+                        println!("\nThe folder will be zipped");
+                        break;
+                    },
+                    "no"|"n" =>
+                    {
+                        println!("\nWill not be zipped");
+                        break;
+                    }
+                    _ => 
+                    {
+                        println!("\nenter a valid input");
+                        continue;
+                    }
+                }
+            }
+            Err(_error) => 
+            {
+                println!("Couldnt Read input!");
+                continue;
+            }
+        }
+    }
     return Ok(());
 }
 
