@@ -14,6 +14,7 @@ fn main() -> io::Result<()>
     }  
 
     let path = Path::new(&args[1]);
+    println!("Path i am getting : {:?}",path.display());
 
     if !path.is_dir()
     {
@@ -61,8 +62,28 @@ fn copy_project_files(source: &Path, destination: &Path) -> io::Result<()>
         let destination_path = destination.join(dir);
         if source_path.is_dir()        
         {
-            fs::create_dir_all(&destination_path)?;
-            fs::copy(source_path,destination_path)?;
+            replicate_folder_recursively(&source_path, &destination_path)?;
+        }
+    }
+    return Ok(());
+}
+
+fn replicate_folder_recursively(source: &Path, destination: &Path) -> io::Result<()>
+{
+    fs::create_dir_all(destination)?;
+    for entry in fs::read_dir(source)? 
+    {
+        let entry = entry?;
+        let entry_path = entry.path();
+        let destination_path = destination.join(entry.file_name());
+
+        if entry_path.is_dir()
+        {
+            replicate_folder_recursively(&entry_path, &destination_path);
+        }
+        else
+        {
+            fs::copy(&entry_path, &destination_path);
         }
     }
     return Ok(());
