@@ -14,7 +14,14 @@ fn main() -> io::Result<()>
     }  
 
     let path = Path::new(&args[1]);
-    println!("Path i am getting : {:?}",path.display());
+    let mut name:String = String::new();
+    if let Some(folder_name) = path.file_name()
+    {
+        name = folder_name.to_string_lossy().to_string();
+    }
+
+    println!("Folder name: {name}");
+    // println!("Path i am getting : {:?}",path.display());
 
     if !path.is_dir()
     {
@@ -32,7 +39,8 @@ fn main() -> io::Result<()>
         return  Ok(());
     }
 
-    let backup_dir = path.join("Archive");
+    let backup_dir = path.join(name + "_Archive");
+    println!("archive directory name: {:?}", &backup_dir);
     copy_project_files(path, &backup_dir);
     return Ok(());
 }
