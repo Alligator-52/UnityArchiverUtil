@@ -2,6 +2,7 @@ use std::env;
 use std::fs;
 use std::io::{self,Write};
 use std::path::{Path, PathBuf};
+use colored::*;
 
 const REQUIRED_FOLDERS: [&str; 4] = ["Assets","Packages", "ProjectSettings", "UserSettings"];
 fn main() -> io::Result<()> 
@@ -31,7 +32,7 @@ fn main() -> io::Result<()>
     println!("Contents of the provided directory:");
     for entry in fs::read_dir(path)? {
         let entry = entry?;
-        println!("{}", entry.path().display());
+        println!("{}", entry.path().to_string_lossy().yellow());
     }
     if !is_unity_project(path)
     {
@@ -40,7 +41,7 @@ fn main() -> io::Result<()>
     }
 
     let backup_dir = path.join(name + "_Archive");
-    println!("\narchive directory name: {:?}", &backup_dir);
+    //println!("\narchive directory name: {:?}", &backup_dir);
     copy_project_files(path, &backup_dir);
 
     let mut zip_input: String = String::new();
@@ -57,6 +58,7 @@ fn main() -> io::Result<()>
                     "yes"|"y" => 
                     {
                         println!("\nThe folder will be zipped");
+                        zip_archived_folder();
                         break;
                     },
                     "no"|"n" =>
@@ -90,7 +92,7 @@ fn is_unity_project(dir: &Path) -> bool {
         let folder_path = dir.join(folder);
         println!("Checking for folder: {}", folder_path.display());
         if !folder_path.is_dir() {
-            println!("Missing folder: {}", folder);
+            println!("Missing folder: {}", folder.red());
             return false;
         }
     }
@@ -104,6 +106,13 @@ fn copy_project_files(source: &Path, destination: &Path) -> io::Result<()>
     {
         let source_path = source.join(dir);
         let destination_path = destination.join(dir);
+        println!
+        (
+            "Moving {} to {}",
+            source_path.to_string_lossy().blue(),
+            destination_path.to_string_lossy().green()
+        );
+
         if source_path.is_dir()        
         {
             replicate_folder_recursively(&source_path, &destination_path)?;
@@ -130,5 +139,10 @@ fn replicate_folder_recursively(source: &Path, destination: &Path) -> io::Result
             fs::copy(&entry_path, &destination_path);
         }
     }
+    return Ok(());
+}
+
+fn zip_archived_folder() -> io::Result<()>
+{
     return Ok(());
 }
