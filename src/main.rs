@@ -152,7 +152,7 @@ fn zip_archived_folder(folder_to_zip :&PathBuf) -> io::Result<()>
     let zip_file_path = folder_to_zip.with_extension("zip");
     let zip_file = File::create(&zip_file_path)?;
     let mut zip = ZipWriter::new(zip_file);
-    let zip_option = FileOptions::default().compression_method(CompressionMethod::ZSTD);
+    let zip_option = FileOptions::default().compression_method(CompressionMethod::ZSTD); //DEFLATE - best compression, BZIP2 - lesser compression, faster, ZSTD - fastest compression
 
     for item in fs::read_dir(folder_to_zip)? 
     {
