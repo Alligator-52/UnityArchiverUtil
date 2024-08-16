@@ -10,7 +10,7 @@ use zip::ZipWriter;
 
 //to do, add option to delete og files
 const REQUIRED_FOLDERS: [&str; 4] = ["Assets","Packages", "ProjectSettings", "UserSettings"];
-const ZIP_EXTENSION: &str = ".zip";
+const ZIP_EXTENSION: &str = "zip";
 const ARCHIVE:&str = "_Archive";
 
 fn main() -> io::Result<()> 
@@ -129,13 +129,13 @@ fn start_zipping(backup_dir: &PathBuf) -> io::Result<()>
             {
                 match zip_input.trim().to_lowercase().as_str() 
                 {
-                    "yes"|"y" => 
+                    "no"|"n" => 
                     {
                         println!("\nZipping folder {}, please wait", backup_dir.file_name().expect("Cannot extract directory name").to_string_lossy().blue());
                         let _ = zip_archived_folder(&backup_dir);
                         break;
                     },
-                    "no"|"n" =>
+                    "yes"|"y" =>
                     {
                         break;
                     }
@@ -171,6 +171,7 @@ fn clean_project(project_dir:&Path, backup_dir: &PathBuf)
                     "yes"|"y" => 
                     {
                         let _ = start_deleting(project_dir, backup_dir);
+                        break;
                     }
                     "no"|"n" => 
                     {
