@@ -1,7 +1,7 @@
 use std::env;
 use std::fs;
 use std::fs::File;
-use std::io::{self};
+use std::io::{self,Write};
 use std::path::{Path, PathBuf};
 use colored::*;
 use zip::write::FileOptions;
@@ -54,14 +54,16 @@ fn main() -> io::Result<()>
 
     let _ = copy_project_files(path, &backup_dir);
 
-    let _= start_zipping(&backup_dir);
+    let _ = start_zipping(&backup_dir);
+
     clean_project(&path, &backup_dir);
     
     return Ok(());
 }
 
 
-fn is_unity_project(dir: &Path) -> bool {
+fn is_unity_project(dir: &Path) -> bool 
+{
     for &folder in &REQUIRED_FOLDERS {
         let folder_path = dir.join(folder);
         println!("Checking for folder: {}", folder_path.display());
@@ -76,6 +78,9 @@ fn is_unity_project(dir: &Path) -> bool {
 fn copy_project_files(source: &Path, destination: &Path) -> io::Result<()>
 {
     fs::create_dir_all(destination).expect("Couldnt complete directory creation!");
+
+    let _ = move_git(&source, &destination);
+
     for &dir in &REQUIRED_FOLDERS
     {
         let source_path = source.join(dir);
@@ -95,6 +100,40 @@ fn copy_project_files(source: &Path, destination: &Path) -> io::Result<()>
     return Ok(());
 }
 
+fn move_git(source: &Path, destination: &Path) -> io::Result<()>
+{
+    if !is_git(source)
+    {
+        return Ok(());
+    }
+    
+    println!("{}\n","Copying Git repository".yellow());
+
+    let git_folder = source.join(".git");
+    let git_dest = destination.join(".git");
+
+    if git_folder.is_dir()
+    {
+        replicate_folder_recursively(&git_folder, &git_dest)?;
+    }
+
+    let git_ignore = source.join(".gitignore");
+    if git_ignore.is_file()
+    {
+        let git_ignore_dest = destination.join(".gitignore");
+        let _ = fs::copy(git_ignore, git_ignore_dest)?;
+    }
+
+    let git_att = source.join(".gitattributes");
+    if git_att.is_file()
+    {
+        let git_att_dest = destination.join(".gitattributes");
+        let _ = fs::copy(git_att, git_att_dest)?;
+    }
+
+    return Ok(());
+}
+
 fn replicate_folder_recursively(source: &Path, destination: &Path) -> io::Result<()>
 {
     fs::create_dir_all(destination)?;
@@ -110,6 +149,12 @@ fn replicate_folder_recursively(source: &Path, destination: &Path) -> io::Result
         }
         else
         {
+            println!
+            (
+                "Moving {} to {}",
+                entry_path.to_string_lossy().blue(),
+                destination_path.to_string_lossy().green()
+            );
             let _ = fs::copy(&entry_path, &destination_path);
         }
     }
@@ -121,7 +166,8 @@ fn start_zipping(backup_dir: &PathBuf) -> io::Result<()>
     let mut zip_input: String = String::new();
     loop
     {   
-        println!("do you want to zip the archived folder? y/n \n");
+        println!("\ndo you want to zip the archived folder? y/n");
+        io::stdout().flush()?;
         match io::stdin().read_line(&mut zip_input)
         {
             Ok(_) => 
@@ -158,7 +204,7 @@ fn start_zipping(backup_dir: &PathBuf) -> io::Result<()>
 
 fn zip_archived_folder(folder_to_zip :&PathBuf) -> io::Result<()>
 {
-    println!("{}","Running Archive Zip..".yellow());
+    println!("\n{}","Running Archive Zip..".yellow());
     let zip_file_path = folder_to_zip.with_extension("zip");
     let zip_file = File::create(&zip_file_path)?;
     let mut zip = ZipWriter::new(zip_file);
@@ -232,7 +278,7 @@ fn zip_directory(directory: &Path, zip: &mut ZipWriter<File>, zip_option : &File
 
 fn start_deleting(project_dir:&Path, backup_dir: &PathBuf) -> io::Result<()>
 {
-    println!("{}","Starting Deletion Process, please wait..".yellow());
+    println!("\n{}","Starting Deletion Process, please wait..".yellow());
     for item in fs::read_dir(project_dir)?
     {
         let item = item?;
@@ -262,7 +308,8 @@ fn clean_project(project_dir:&Path, backup_dir: &PathBuf)
     let mut delete_input: String = String::new();
     loop
     {
-        println!("Do you want to keep the original files: y/n \n");
+        println!("\nDo you want to keep the original files: y/n");
+        io::stdout().flush().expect("Couldnt flush stdout");
         match io::stdin().read_line(&mut delete_input) 
         {
             Ok(_) => 
@@ -293,4 +340,11 @@ fn clean_project(project_dir:&Path, backup_dir: &PathBuf)
             }
         }
     }
+}
+
+fn is_git(directory: &Path) -> bool 
+{
+    let git_path = directory.join(".git");
+
+    return git_path.is_dir();
 }
