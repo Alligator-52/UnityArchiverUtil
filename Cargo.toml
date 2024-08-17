@@ -7,3 +7,4 @@ edition = "2021"
 flate2 = "1.0"
 zip = "0.6.0"
 colored = "2"
+winapi = { version = "0.3", features = ["consoleapi", "handleapi", "processenv", "winbase", "wincon"] }

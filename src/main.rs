@@ -1,13 +1,14 @@
 use std::env;
 use std::fs;
 use std::fs::File;
-use std::io::{self,Write};
+use std::io::{self};
 use std::path::{Path, PathBuf};
 use colored::*;
 use zip::write::FileOptions;
 use zip::CompressionMethod;
 use zip::ZipWriter;
 
+//mod ansi_support;
 //to do, add option to delete og files
 const REQUIRED_FOLDERS: [&str; 4] = ["Assets","Packages", "ProjectSettings", "UserSettings"];
 const ZIP_EXTENSION: &str = "zip";
@@ -15,6 +16,8 @@ const ARCHIVE:&str = "_Archive";
 
 fn main() -> io::Result<()> 
 {
+    //ansi_support::enable_ansi_support().expect("Failed to convert colored codes");
+
     let args: Vec<String> = env::args().collect();
     if args.len() < 2
     {
@@ -57,10 +60,7 @@ fn main() -> io::Result<()>
     return Ok(());
 }
 
-// fn is_unity_project(dir: &Path) -> bool
-// {
-//     return REQUIRED_FOLDERS.iter().all(|&d| dir.join(d).is_dir());
-// }
+
 fn is_unity_project(dir: &Path) -> bool {
     for &folder in &REQUIRED_FOLDERS {
         let folder_path = dir.join(folder);
