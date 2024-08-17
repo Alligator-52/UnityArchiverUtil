@@ -2,7 +2,7 @@ use zip::write::FileOptions;
 use zip::CompressionMethod;
 use zip::ZipWriter;
 use std::path::{Path, PathBuf};
-use std::io::{self,Write};
+use std::io::{self};
 use std::fs::File;
 use std::fs;
 use colored::*;
