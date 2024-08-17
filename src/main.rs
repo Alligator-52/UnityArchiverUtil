@@ -29,9 +29,8 @@ fn main() -> io::Result<()>
         name = folder_name.to_string_lossy().to_string();
     }
 
-    println!("\nFolder name: {name}\n");
-    // println!("Path i am getting : {:?}",path.display());
-
+    //println!("\nFolder name: {name}\n");
+    
     if !path.is_dir()
     {
         println!("Invalid Directory Path!");
@@ -49,7 +48,7 @@ fn main() -> io::Result<()>
     }
 
     let backup_dir = path.join(name.clone() + ARCHIVE);
-    //println!("\narchive directory name: {:?}", &backup_dir);
+
     let _ = copy_project_files(path, &backup_dir);
 
     let _= start_zipping(&backup_dir);
@@ -129,13 +128,13 @@ fn start_zipping(backup_dir: &PathBuf) -> io::Result<()>
             {
                 match zip_input.trim().to_lowercase().as_str() 
                 {
-                    "no"|"n" => 
+                    "yes"|"y" => 
                     {
                         println!("\nZipping folder {}, please wait", backup_dir.file_name().expect("Cannot extract directory name").to_string_lossy().blue());
                         let _ = zip_archived_folder(&backup_dir);
                         break;
                     },
-                    "yes"|"y" =>
+                    "no"|"n" =>
                     {
                         break;
                     }
@@ -153,74 +152,13 @@ fn start_zipping(backup_dir: &PathBuf) -> io::Result<()>
             }
         }
     }
-    return Ok(());
-}
-
-fn clean_project(project_dir:&Path, backup_dir: &PathBuf)
-{
-    let mut delete_input: String = String::new();
-    loop
-    {
-        println!("Do you want to keep the original files: y/n \n");
-        match io::stdin().read_line(&mut delete_input) 
-        {
-            Ok(_) => 
-            {
-                match delete_input.trim().to_lowercase().as_str() 
-                {
-                    "yes"|"y" => 
-                    {
-                        let _ = start_deleting(project_dir, backup_dir);
-                        break;
-                    }
-                    "no"|"n" => 
-                    {
-                        break;
-                    }
-                    _ => 
-                    {
-                        println!("\n{}","Enter a Valid input! y/n".red());
-                        continue;
-                    }
-                }
-            }
-            Err(_er) =>
-            {
-                println!("Couldnt Read Input");
-                continue;
-            }
-        }
-    }
-}
-
-fn start_deleting(project_dir:&Path, backup_dir: &PathBuf) -> io::Result<()>
-{
-    for item in fs::read_dir(project_dir)?
-    {
-        let item = item?;
-        let path = item.path();
-        let backup_dir = backup_dir.as_path();
-        if (path == backup_dir) ||
-         (path.extension().map_or(false, |ext| ext == ZIP_EXTENSION))
-        {
-            continue;
-        }
-        println!("Deleting {}, please wait..", path.to_string_lossy().red());
-        if path.is_dir()
-        {
-            fs::remove_dir_all(&path)?;
-        }
-        else
-        {
-            fs::remove_file(&path)?;
-        }
-    }
-    println!("\n{}","Project Cleanup Finshed!".green());
+    println!("{}","Successfully Zipped Archive Folder".green());
     return Ok(());
 }
 
 fn zip_archived_folder(folder_to_zip :&PathBuf) -> io::Result<()>
 {
+    println!("{}","Running Archive Zip..".yellow());
     let zip_file_path = folder_to_zip.with_extension("zip");
     let zip_file = File::create(&zip_file_path)?;
     let mut zip = ZipWriter::new(zip_file);
@@ -290,4 +228,69 @@ fn zip_directory(directory: &Path, zip: &mut ZipWriter<File>, zip_option : &File
         }
     }
     return Ok(());
+}
+
+fn start_deleting(project_dir:&Path, backup_dir: &PathBuf) -> io::Result<()>
+{
+    println!("{}","Starting Deletion Process, please wait..".yellow());
+    for item in fs::read_dir(project_dir)?
+    {
+        let item = item?;
+        let path = item.path();
+        let backup_dir = backup_dir.as_path();
+        if (path == backup_dir) ||
+         (path.extension().map_or(false, |ext| ext == ZIP_EXTENSION))
+        {
+            continue;
+        }
+        println!("Deleting {}", path.to_string_lossy().red());
+        if path.is_dir()
+        {
+            fs::remove_dir_all(&path)?;
+        }
+        else
+        {
+            fs::remove_file(&path)?;
+        }
+    }
+    println!("\n{}","Project Cleanup Finshed!".green());
+    return Ok(());
+}
+
+fn clean_project(project_dir:&Path, backup_dir: &PathBuf)
+{
+    let mut delete_input: String = String::new();
+    loop
+    {
+        println!("Do you want to keep the original files: y/n \n");
+        match io::stdin().read_line(&mut delete_input) 
+        {
+            Ok(_) => 
+            {
+                match delete_input.trim().to_lowercase().as_str() 
+                {
+                    "no"|"n" => 
+                    {
+                        let _ = start_deleting(project_dir, backup_dir);
+                        break;
+                    }
+                    "yes"|"y" => 
+                    {
+                        println!("{}","Keeping Original Files".green());
+                        break;
+                    }
+                    _ => 
+                    {
+                        println!("\n{}","Enter a Valid input! y/n".red());
+                        continue;
+                    }
+                }
+            }
+            Err(_er) =>
+            {
+                println!("Couldnt Read Input");
+                continue;
+            }
+        }
+    }
 }
