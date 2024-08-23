@@ -12,7 +12,6 @@ mod cleaner;
 mod constants;
 
 use crate::constants::{REQUIRED_FOLDERS,ARCHIVE};
-//mod ansi_support;
 
 fn main() -> io::Result<()> 
 {
